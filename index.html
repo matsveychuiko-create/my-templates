@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои шаблоны — Фотобот</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F8FA; --surface: #FFFFFF; --surface2: #F9FAFB;
+    --border: #E5E7EB; --border2: #D1D5DB;
+    --accent: #635BFF; --accent2: #7A73FF;
+    --accent-glow: rgba(99,91,255,0.12); --accent-light: #ECECFD;
+    --text: #1A1F36; --text2: #3C4257;
+    --muted: #697386; --muted2: #A3ACB9;
+    --green: #09825D; --green-light: #CBFFE3;
+    --red: #C0123C; --red-light: #FFE8EF;
+    --orange: #B35309; --orange-light: #FEF3C7;
+    --sidebar-bg: #0B1020; --sidebar-text: #8EA2B8; --topbar-bg: #0B1020;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; font-size: 13px; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ─── TOPBAR ─── */
+  .topbar { background: var(--topbar-bg); height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 32px; position: sticky; top: 0; z-index: 100; flex-shrink: 0; border-bottom: 1px solid rgba(123,97,255,0.2); }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+  .topbar-logo-text { font-family: 'Unbounded', sans-serif; font-size: 0.85rem; font-weight: 700; color: #fff; letter-spacing: 0.08em; }
+  .topbar-nav { display: flex; gap: 2px; flex: 1; justify-content: center; }
+  .topbar-nav a { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
+  .topbar-nav a:hover { color: #fff; background: rgba(255,255,255,0.07); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .balance-chip { background: rgba(99,91,255,0.2); border: 1.5px solid rgba(99,91,255,0.4); border-radius: 20px; padding: 5px 14px; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; color: #C7C4FF; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .balance-chip::before { content: '₽'; font-size: 0.7rem; opacity: 0.8; }
+  .balance-chip:hover { border-color: var(--accent); background: #312E81; color: #fff; }
+  .lang-btn { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.55); font-size: 0.72rem; cursor: pointer; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); transition: all 0.2s; }
+  .lang-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+  .lang-dropdown { position: relative; }
+  .lang-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 200; display: none; min-width: 160px; padding: 6px 0; overflow: hidden; }
+  .lang-menu.open { display: block; }
+  .lang-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 0.82rem; color: var(--text2); cursor: pointer; transition: background 0.15s; font-family: 'Montserrat', sans-serif; }
+  .lang-item:hover { background: var(--surface2); }
+  .lang-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  #lang-arrow { transition: transform 0.2s; }
+  .lang-btn.open #lang-arrow { transform: rotate(180deg); }
+
+  /* ─── LAYOUT ─── */
+  .layout { display: flex; flex: 1; min-height: calc(100vh - 56px); align-items: stretch; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { width: 220px; min-width: 220px; background: var(--sidebar-bg); flex-shrink: 0; display: flex; flex-direction: column; position: sticky; top: 56px; height: calc(100vh - 56px); overflow: hidden; border-right: 1px solid rgba(123,97,255,0.1); transition: width 0.3s ease, min-width 0.3s ease; }
+  .sidebar.collapsed { width: 0 !important; min-width: 0 !important; }
+  .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 1px; padding: 8px 8px 0; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+  .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px; color: var(--sidebar-text); text-decoration: none; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.18s; position: relative; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sidebar-item.active { background: rgba(99,91,255,0.25); color: #fff; border: 1px solid rgba(99,91,255,0.3); }
+  .sidebar-item.active .s-icon { color: var(--accent2); }
+  .s-icon { width: 15px; height: 15px; flex-shrink: 0; color: rgba(160,168,192,0.6); transition: color 0.2s; }
+  .sidebar-item:hover .s-icon { color: rgba(255,255,255,0.8); }
+  .sidebar-badge { margin-left: auto; background: var(--red); color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 0.6rem; font-weight: 700; }
+  .s-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 8px; }
+  .sidebar-bottom { padding: 0 8px 8px; display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
+  .disk-widget { padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin: 4px 0; border: 1px solid rgba(255,255,255,0.05); }
+  .disk-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .disk-label { font-size: 0.62rem; color: var(--sidebar-text); text-transform: uppercase; letter-spacing: 0.06em; }
+  .disk-value { font-size: 0.62rem; color: #4ade80; font-weight: 700; }
+  .disk-track { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .disk-fill { height: 100%; width: 36%; background: linear-gradient(90deg, #7B61FF, #4ade80); border-radius: 3px; }
+  .sidebar-item.instr-primary { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: rgba(255,255,255,0.9); margin-bottom: 4px; align-items: flex-start; padding: 10px 12px; position: relative; }
+  .sidebar-item.instr-primary:hover { background: rgba(16,185,129,0.22); border-color: rgba(16,185,129,0.5); color: #fff; }
+  .sidebar-item.instr-primary .s-icon { color: #6EE7B7; opacity: 1; margin-top: 2px; }
+  .instr-badge { position: absolute; top: 7px; right: 8px; width: 16px; height: 16px; border-radius: 50%; background: #10B981; color: #fff; font-size: 0.6rem; font-weight: 900; display: flex; align-items: center; justify-content: center; animation: blink 1.8s infinite; }
+  .instr-hint { font-size: 0.6rem; color: rgba(110,231,183,0.7); margin-top: 2px; font-weight: 400; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .ai-hint { font-size: 0.6rem; color: rgba(159,143,255,0.6); margin-top: 2px; font-weight: 400; }
+  .sidebar-item.ai-agent { align-items: flex-start; padding: 10px 12px; background: rgba(99,91,255,0.12); border: 1px solid rgba(99,91,255,0.25); color: rgba(255,255,255,0.9); margin-bottom: 6px; position: relative; }
+  .sidebar-item.ai-agent:hover { background: rgba(99,91,255,0.22); border-color: rgba(99,91,255,0.4); }
+  .sidebar-item.ai-agent .s-icon { color: var(--accent2); opacity: 1; margin-top: 2px; }
+  .ai-pulse { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: blink 1.5s infinite; box-shadow: 0 0 6px rgba(74,222,128,0.6); }
+  .ai-text { display: flex; align-items: center; gap: 6px; }
+  .ai-live { background: rgba(123,97,255,0.6); border: 1px solid rgba(123,97,255,0.4); color: #fff; font-size: 0.55rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; }
+  .sidebar-item.logout { color: rgba(255,255,255,0.25); }
+  .sidebar-item.logout:hover { color: #FCA5A5; background: rgba(239,68,68,0.08); }
+
+  /* ─── SIDEBAR TOGGLE ─── */
+  .sidebar-toggle { position: fixed; top: calc(56px + 80px); left: 220px; width: 20px; height: 52px; border-radius: 0 8px 8px 0; background: #312E81; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 300; transition: left 0.3s ease, background 0.2s; color: #fff; }
+  .sidebar-toggle:hover { background: #1E1B4B; }
+
+  /* ─── MAIN ─── */
+  .main { flex: 1; overflow: auto; min-width: 0; background: var(--bg); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
+
+  /* ─── PAGE HEADER BAR ─── */
+  .page-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; animation: fadeUp 0.25s ease; }
+  .page-title { font-family: 'Unbounded', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text); }
+
+  /* ─── CONTENT ─── */
+  .content { padding: 24px 28px 40px; animation: fadeUp 0.3s ease 0.05s both; }
+
+  /* ─── CTA BLOCKS (Новый шаблон / Добавить из библиотеки) ─── */
+  .cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+
+  .cta-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .cta-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,91,255,0.1); border-color: rgba(99,91,255,0.3); }
+
+  .cta-body {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .cta-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cta-icon-wrap.green { background: rgba(9,130,93,0.1); color: #09825D; border: 2.5px solid rgba(9,130,93,0.25); }
+  .cta-icon-wrap.blue  { background: rgba(26,86,219,0.08); color: #1A56DB; border: 2.5px solid rgba(26,86,219,0.2); }
+
+  .cta-label {
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 13px 18px;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+  .cta-card:nth-child(2) .cta-label { background: #1A56DB; }
+  .cta-card:hover .cta-label { opacity: 0.92; }
+
+  /* ─── SECTION HEADER ─── */
+  .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-family: 'Unbounded', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .section-count { font-size: 0.72rem; color: var(--muted); font-family: 'Montserrat', sans-serif; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; margin-left: 8px; }
+
+  /* ─── TEMPLATES GRID ─── */
+  .templates-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+  /* ─── TEMPLATE CARD ─── */
+  .tpl-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: visible;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .tpl-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+
+  /* Preview */
+  .tpl-preview {
+    width: 100%; aspect-ratio: 4/3;
+    background: #1a1f2e;
+    overflow: hidden;
+    position: relative;
+    border-radius: 10px 10px 0 0;
+    cursor: pointer;
+  }
+  .tpl-preview svg { width: 100%; height: 100%; display: block; transition: transform 0.3s; }
+  .tpl-card:hover .tpl-preview svg { transform: scale(1.03); }
+
+  /* Card footer */
+  .tpl-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    gap: 8px;
+    background: var(--surface);
+    border-radius: 0 0 10px 10px;
+  }
+  .tpl-name { font-size: 0.8rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+
+  /* Menu trigger */
+  .tpl-menu-btn {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .tpl-menu-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+  .tpl-menu-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ─── CONTEXT MENU ─── */
+  .ctx-menu {
+    position: absolute;
+    top: calc(100% - 28px); right: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+    z-index: 50;
+    min-width: 176px;
+    padding: 5px 0;
+    display: none;
+    animation: menuIn 0.15s ease;
+  }
+  .ctx-menu.open { display: block; }
+  @keyframes menuIn { from{opacity:0;transform:translateY(-6px);} to{opacity:1;transform:none;} }
+
+  .ctx-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    font-size: 0.82rem; font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: background 0.12s;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .ctx-item:hover { background: var(--surface2); color: var(--text); }
+  .ctx-item svg { flex-shrink: 0; color: var(--muted); }
+  .ctx-item:hover svg { color: var(--accent); }
+  .ctx-item.danger { color: var(--red); }
+  .ctx-item.danger:hover { background: var(--red-light); }
+  .ctx-item.danger svg { color: var(--red); }
+  .ctx-item.accent { color: var(--accent); }
+  .ctx-item.accent svg { color: var(--accent); }
+  .ctx-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-icon { width: 52px; height: 52px; background: var(--accent-light); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: var(--accent); }
+  .empty-title { font-family: 'Unbounded', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+  .empty-text { font-size: 0.78rem; line-height: 1.6; }
+
+  /* ─── TOAST ─── */
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast { background: #1A1F36; color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 0.82rem; font-family: 'Montserrat', sans-serif; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); animation: toastIn 0.3s ease; pointer-events: all; min-width: 260px; }
+  @keyframes toastIn { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:none;} }
+  @keyframes toastOut { from{opacity:1;} to{opacity:0;transform:translateY(8px);} }
+  .toast-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toast-icon.green { background: var(--green-light); color: var(--green); }
+  .toast-icon.red { background: var(--red-light); color: var(--red); }
+
+  /* ─── CONFIRM MODAL ─── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(11,16,32,0.65); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border-radius: 16px; width: 420px; max-width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,0.2); overflow: hidden; transform: scale(0.96) translateY(8px); transition: transform 0.22s; }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+  .modal-header { padding: 20px 22px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .modal-title { font-family: 'Unbounded', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text); }
+  .modal-subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  .modal-close { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+  .modal-close:hover { background: var(--surface2); color: var(--text); }
+  .modal-body { padding: 18px 22px; font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+  .modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-cancel { height: 38px; padding: 0 18px; border-radius: 9px; border: 1.5px solid var(--border); background: transparent; color: var(--text2); font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+  .btn-cancel:hover { border-color: var(--accent2); color: var(--accent); }
+  .btn-danger { height: 38px; padding: 0 20px; border-radius: 9px; border: none; background: var(--red); color: #fff; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 10px rgba(192,18,60,0.3); }
+  .btn-danger:hover { background: #a00f33; box-shadow: 0 4px 14px rgba(192,18,60,0.4); transform: translateY(-1px); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1280px) { .templates-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } .content { padding: 20px 22px 36px; } .page-bar { padding: 0 22px; } }
+  @media (max-width: 1100px) { .templates-grid { grid-template-columns: repeat(2, 1fr); } .sidebar { width: 192px; min-width: 192px; } .sidebar-toggle { left: 192px; } body.sidebar-collapsed .sidebar-toggle { left: 0; } }
+  @media (max-width: 1024px) { .sidebar { width: 0 !important; min-width: 0 !important; overflow: hidden; } .sidebar-toggle { left: 0 !important; } #toggle-arrow { transform: rotate(180deg); } .sidebar.expanded { width: 220px !important; min-width: 220px !important; } body.sidebar-expanded .sidebar-toggle { left: 220px !important; } .topbar-nav { display: none; } .topbar { justify-content: space-between; } .templates-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } .content { padding: 18px 18px 32px; } .page-bar { padding: 0 18px; } .cta-row { gap: 12px; } }
+  @media (max-width: 768px) { .templates-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .content { padding: 14px 14px 28px; } .cta-row { grid-template-columns: 1fr; gap: 10px; } .cta-body { padding: 28px 20px; } }
+  @media (max-width: 640px) { .templates-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="#" class="topbar-logo">
+    <svg width="26" height="23" viewBox="0 0 265 233" fill="none">
+      <path d="M0 0 C0 73.26 0 146.52 0 222 C-6.2 220.62 -12.03 219.13 -18.01 217.11 C-28.91 213.46 -53.06 205.38 -96 191 C-96 138.2 -96 85.4 -96 31 C-49.69 15.5 -29.17 8.63 0 0 Z" fill="#ffffff" transform="translate(259,6)"/>
+      <path d="M0 0 C0 73.26 0 146.52 0 222 C-10.88 218.24 -22.01 212.65 -48.47 199.37 C-57.64 194.76 -64 191 -64 191 C-64 138.2 -64 85.4 -64 31 C-34.06 15.43 -17.27 6.98 0 0 Z" fill="#ffffff" transform="translate(132,6)"/>
+      <path d="M0 0 C0 73.26 0 146.52 0 222 C-14 215 -26.78 205.93 -33 191 C-39.09 168.15 -36.93 100.1 -21.74 14.45 C-6.49 0 0 0 0 0 Z" fill="#ffffff" transform="translate(37,6)"/>
+    </svg>
+    <span class="topbar-logo-text">ФОТОБОТ</span>
+  </a>
+  <nav class="topbar-nav">
+    <a href="#">Главная</a>
+    <a href="#">Стоимость</a>
+    <a href="#">Поддержка</a>
+    <a href="#">Аккаунт</a>
+    <a href="#">Панель управления</a>
+  </nav>
+  <div class="topbar-right">
+    <div class="balance-chip">2 748.41</div>
+    <div class="lang-dropdown" id="lang-dropdown">
+      <div class="lang-btn" onclick="toggleLang()">
+        <span id="lang-flag">🇷🇺</span>
+        <span id="lang-code">RU</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="lang-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="lang-menu" id="lang-menu">
+        <div class="lang-item active" onclick="selectLang('🇷🇺','RU',event)">🇷🇺 Русский</div>
+        <div class="lang-item" onclick="selectLang('🇬🇧','EN',event)">🇬🇧 English</div>
+        <div class="lang-item" onclick="selectLang('🇵🇱','PL',event)">🇵🇱 Polski</div>
+        <div class="lang-item" onclick="selectLang('🇺🇦','UA',event)">🇺🇦 Українська</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <nav class="sidebar-nav">
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Заказы
+    </a>
+    <a href="#" class="sidebar-item active">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Мои шаблоны
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Библиотека шаблонов
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Альбомы со мной
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 2.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      Приём заказов
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Размеры печати
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Примеры разворотов
+    </a>
+    <div class="s-divider"></div>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Профиль
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Уведомления
+      <span class="sidebar-badge">3</span>
+    </a>
+    <a href="#" class="sidebar-item">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+      Корзина
+    </a>
+  </nav>
+  <div class="s-divider"></div>
+  <div class="sidebar-bottom">
+    <a href="#" class="sidebar-item instr-primary">
+      <div class="instr-badge">!</div>
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <div><div>Инструкция</div><div class="instr-hint">Начните здесь 👆</div></div>
+    </a>
+    <a href="#" class="sidebar-item ai-agent">
+      <div class="ai-pulse"></div>
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 012 2v1a7 7 0 010 14v1a2 2 0 01-4 0v-1a7 7 0 010-14V4a2 2 0 012-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      <div><span class="ai-text">Помощь <span class="ai-live">24/7</span></span><div class="ai-hint">Если не нашли в инструкции</div></div>
+    </a>
+    <div class="s-divider" style="margin-top:8px;"></div>
+    <div class="disk-widget">
+      <div class="disk-top"><span class="disk-label">Диск</span><span class="disk-value">3.2 / 50 GB</span></div>
+      <div class="disk-track"><div class="disk-fill"></div></div>
+    </div>
+    <a href="#" class="sidebar-item logout">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Выход
+    </a>
+  </div>
+</aside>
+
+<button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()">
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="toggle-arrow"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- PAGE HEADER BAR -->
+  <div class="page-bar">
+    <span class="page-title">Мои шаблоны</span>
+  </div>
+
+  <div class="content">
+
+    <!-- CTA ROW -->
+    <div class="cta-row">
+
+      <div class="cta-card" onclick="showToast('Создание нового шаблона...','green')">
+        <div class="cta-body">
+          <div class="cta-icon-wrap green">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </div>
+        </div>
+        <div class="cta-label">Новый шаблон</div>
+      </div>
+
+      <div class="cta-card" onclick="window.location='templates-library.html'">
+        <div class="cta-body">
+          <div class="cta-icon-wrap blue">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+        </div>
+        <div class="cta-label">Добавить шаблон из библиотеки</div>
+      </div>
+
+    </div>
+
+    <!-- TEMPLATES SECTION -->
+    <div class="section-hd">
+      <div>
+        <span class="section-title">Мои шаблоны</span>
+        <span class="section-count">9 шаблонов</span>
+      </div>
+    </div>
+
+    <div class="templates-grid" id="templates-grid">
+
+      <!-- Card: Custom:Test_Kinfolk_Dark -->
+      <div class="tpl-card" data-name="Custom:Test_Kinfolk_Dark">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#111"/><rect x="20" y="20" width="170" height="260" fill="#2a2a2a" rx="3"/><rect x="210" y="20" width="170" height="125" fill="#2a2a2a" rx="3"/><rect x="210" y="155" width="80" height="125" fill="#2a2a2a" rx="3"/><rect x="300" y="155" width="80" height="125" fill="#333" rx="3"/></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Test_Kinfolk_Dark</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Test_Lite_Collages -->
+      <div class="tpl-card" data-name="Custom:Test_Lite_Collages">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#f0f0f0"/><rect x="10" y="10" width="185" height="130" fill="#ccc" rx="3"/><rect x="205" y="10" width="90" height="60" fill="#bbb" rx="3"/><rect x="305" y="10" width="85" height="60" fill="#c8c8c8" rx="3"/><rect x="205" y="80" width="90" height="60" fill="#c0c0c0" rx="3"/><rect x="305" y="80" width="85" height="60" fill="#b8b8b8" rx="3"/><rect x="10" y="150" width="90" height="140" fill="#c5c5c5" rx="3"/><rect x="110" y="150" width="90" height="140" fill="#bbb" rx="3"/><rect x="210" y="150" width="90" height="140" fill="#c8c8c8" rx="3"/><rect x="310" y="150" width="80" height="140" fill="#c0c0c0" rx="3"/></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Test_Lite_Collages</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Copy Kinfolk_Dark -->
+      <div class="tpl-card" data-name="Custom:Copy Kinfolk_Dark">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#1a1a1a"/><rect x="20" y="20" width="170" height="260" fill="#2a2a2a" rx="3"/><rect x="210" y="20" width="170" height="125" fill="#2a2a2a" rx="3"/><rect x="210" y="155" width="80" height="125" fill="#2a2a2a" rx="3"/><rect x="300" y="155" width="80" height="125" fill="#333" rx="3"/></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Copy Kinfolk_Dark</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Copy Crane_Lay_Flat_Fabrica -->
+      <div class="tpl-card" data-name="Custom:Copy Crane_Lay_Flat_Fabrica">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#f5efe6"/><rect x="10" y="10" width="180" height="260" fill="#d4c5b0" rx="3"/><line x1="30" y1="40" x2="170" y2="40" stroke="rgba(180,150,110,0.4)" stroke-width="1"/><line x1="30" y1="80" x2="170" y2="80" stroke="rgba(180,150,110,0.3)" stroke-width="1"/><line x1="30" y1="120" x2="170" y2="120" stroke="rgba(180,150,110,0.4)" stroke-width="1"/><rect x="200" y="10" width="190" height="140" fill="#c8b89a" rx="3"/><rect x="200" y="160" width="92" height="120" fill="#d4c5b0" rx="3"/><rect x="300" y="160" width="90" height="120" fill="#bfad96" rx="3"/><text x="95" y="250" fill="rgba(120,90,60,0.5)" font-size="9" text-anchor="middle" font-family="sans-serif">CRANE · LAY FLAT</text></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Copy Crane_Lay_Flat_Fabrica</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Copy Lite_6 -->
+      <div class="tpl-card" data-name="Custom:Copy Lite_6">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#f8f8f8"/><rect x="10" y="10" width="185" height="130" fill="#ddd" rx="3"/><rect x="205" y="10" width="90" height="60" fill="#d0d0d0" rx="3"/><rect x="305" y="10" width="85" height="60" fill="#d8d8d8" rx="3"/><rect x="205" y="80" width="90" height="60" fill="#d4d4d4" rx="3"/><rect x="305" y="80" width="85" height="60" fill="#ccc" rx="3"/><rect x="10" y="150" width="185" height="130" fill="#d8d8d8" rx="3"/><rect x="205" y="150" width="185" height="130" fill="#d0d0d0" rx="3"/><text x="200" y="295" fill="rgba(0,0,0,0.2)" font-size="8" text-anchor="middle" font-family="sans-serif">City</text></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Copy Lite_6</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Copy Lite_test -->
+      <div class="tpl-card" data-name="Custom:Copy Lite_test">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#f2f2f2"/><rect x="10" y="10" width="185" height="200" fill="#e0e0e0" rx="3"/><rect x="205" y="10" width="185" height="95" fill="#d8d8d8" rx="3"/><rect x="205" y="115" width="90" height="95" fill="#e0e0e0" rx="3"/><rect x="305" y="115" width="85" height="95" fill="#d4d4d4" rx="3"/><rect x="10" y="220" width="380" height="70" fill="#ddd" rx="3"/><text x="200" y="292" fill="rgba(0,0,0,0.2)" font-size="8" text-anchor="middle" font-family="sans-serif">City</text></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Copy Lite_test</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:ВЫПУСКНОЙ АЛЬ (gradient) -->
+      <div class="tpl-card" data-name="Custom:Выпускной Альбом">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')" style="background:linear-gradient(135deg,#1E1B4B,#312E81);">
+          <svg viewBox="0 0 400 300"><text x="200" y="90" fill="rgba(255,255,255,0.9)" font-family="sans-serif" font-size="48" font-weight="900" text-anchor="middle">ВЫ</text><text x="200" y="150" fill="rgba(255,255,255,0.9)" font-family="sans-serif" font-size="48" font-weight="900" text-anchor="middle">ПУСК</text><text x="200" y="210" fill="rgba(255,255,255,0.9)" font-family="sans-serif" font-size="48" font-weight="900" text-anchor="middle">НОЙ</text><text x="200" y="270" fill="rgba(255,255,255,0.9)" font-family="sans-serif" font-size="48" font-weight="900" text-anchor="middle">АЛЬ</text></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Выпускной Альбом</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Red Dark -->
+      <div class="tpl-card" data-name="Custom:Red Dark">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')" style="background:#0d0d0d;">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#0d0d0d"/><rect x="10" y="10" width="185" height="260" fill="#1a0000" rx="3"/><line x1="30" y1="50" x2="175" y2="50" stroke="rgba(180,0,0,0.4)" stroke-width="1.5"/><line x1="30" y1="100" x2="175" y2="100" stroke="rgba(180,0,0,0.3)" stroke-width="1.5"/><line x1="30" y1="150" x2="175" y2="150" stroke="rgba(180,0,0,0.4)" stroke-width="1.5"/><line x1="30" y1="200" x2="175" y2="200" stroke="rgba(180,0,0,0.3)" stroke-width="1.5"/><rect x="205" y="10" width="185" height="130" fill="#180000" rx="3"/><rect x="205" y="150" width="90" height="120" fill="#1a0000" rx="3"/><rect x="305" y="150" width="85" height="120" fill="#150000" rx="3"/></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Red Dark</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Custom:Lite White -->
+      <div class="tpl-card" data-name="Custom:Lite White">
+        <div class="tpl-preview" onclick="showToast('Открываем редактор шаблона...','green')">
+          <svg viewBox="0 0 400 300"><rect width="400" height="300" fill="#fff"/><rect x="10" y="10" width="185" height="260" fill="#e8e8e8" rx="3"/><rect x="205" y="10" width="185" height="130" fill="#e0e0e0" rx="3"/><rect x="205" y="150" width="90" height="120" fill="#e8e8e8" rx="3"/><rect x="305" y="150" width="85" height="120" fill="#ddd" rx="3"/></svg>
+        </div>
+        <div class="tpl-footer">
+          <span class="tpl-name">Custom:Lite White</span>
+          <button class="tpl-menu-btn" onclick="toggleMenu(this, event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <div class="ctx-menu">
+            <div class="ctx-item" onclick="ctxAction('preview',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Просмотр</div>
+            <div class="ctx-item" onclick="ctxAction('album',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Альбом</div>
+            <div class="ctx-item" onclick="ctxAction('copy',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копировать</div>
+            <div class="ctx-item accent" onclick="ctxAction('typography',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>О типографии</div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" onclick="ctxDelete(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Удалить</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /templates-grid -->
+  </div><!-- /content -->
+</main>
+</div><!-- /layout -->
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="delete-modal" onclick="handleModalClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Удалить шаблон?</div>
+        <div class="modal-subtitle" id="delete-name">—</div>
+      </div>
+      <button class="modal-close" onclick="closeDeleteModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      Шаблон будет удалён безвозвратно. Восстановить его будет невозможно.
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Отмена</button>
+      <button class="btn-danger" onclick="confirmDelete()">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+  let cardToDelete = null;
+
+  // ─── SIDEBAR ───
+  function getSidebarWidth() {
+    const w = window.innerWidth;
+    if (w <= 1024) return 52;
+    if (w <= 1280) return 190;
+    return 220;
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const btn = document.getElementById('sidebar-toggle-btn');
+    const arrow = document.getElementById('toggle-arrow');
+    if (window.innerWidth <= 1024) {
+      const expanded = sidebar.classList.toggle('expanded');
+      btn.style.left = expanded ? '220px' : '0px';
+      arrow.style.transform = expanded ? 'rotate(0deg)' : 'rotate(180deg)';
+    } else {
+      const collapsed = sidebar.classList.toggle('collapsed');
+      const w = getSidebarWidth();
+      btn.style.left = collapsed ? '0px' : w + 'px';
+      arrow.style.transform = collapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    const sidebar = document.getElementById('sidebar');
+    const btn = document.getElementById('sidebar-toggle-btn');
+    if (window.innerWidth > 1024) {
+      sidebar.classList.remove('expanded');
+      if (!sidebar.classList.contains('collapsed')) {
+        btn.style.left = getSidebarWidth() + 'px';
+      }
+    }
+  });
+
+  (function() {
+    if (window.innerWidth <= 1024) {
+      document.getElementById('sidebar-toggle-btn').style.left = '0px';
+      document.getElementById('toggle-arrow').style.transform = 'rotate(180deg)';
+    }
+  })();
+
+  // ─── LANG ───
+  function toggleLang() {
+    document.getElementById('lang-menu').classList.toggle('open');
+    document.querySelector('.lang-btn').classList.toggle('open');
+  }
+  function selectLang(flag, code, e) {
+    e.stopPropagation();
+    document.getElementById('lang-flag').textContent = flag;
+    document.getElementById('lang-code').textContent = code;
+    document.querySelectorAll('.lang-item').forEach(i => i.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.getElementById('lang-menu').classList.remove('open');
+    document.querySelector('.lang-btn').classList.remove('open');
+  }
+  document.addEventListener('click', e => {
+    const dd = document.getElementById('lang-dropdown');
+    if (dd && !dd.contains(e.target)) {
+      document.getElementById('lang-menu').classList.remove('open');
+      const b = document.querySelector('.lang-btn');
+      if (b) b.classList.remove('open');
+    }
+    // Close all context menus
+    if (!e.target.closest('.tpl-menu-btn') && !e.target.closest('.ctx-menu')) {
+      closeAllMenus();
+    }
+  });
+
+  // ─── CONTEXT MENU ───
+  function closeAllMenus() {
+    document.querySelectorAll('.ctx-menu.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.tpl-menu-btn.active').forEach(b => b.classList.remove('active'));
+  }
+
+  function toggleMenu(btn, e) {
+    e.stopPropagation();
+    const menu = btn.nextElementSibling;
+    const isOpen = menu.classList.contains('open');
+    closeAllMenus();
+    if (!isOpen) {
+      menu.classList.add('open');
+      btn.classList.add('active');
+      // Flip up if too close to bottom
+      const rect = menu.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - 20) {
+        menu.style.top = 'auto';
+        menu.style.bottom = '38px';
+      } else {
+        menu.style.top = '';
+        menu.style.bottom = '';
+      }
+    }
+  }
+
+  function ctxAction(action, item) {
+    closeAllMenus();
+    const card = item.closest('.tpl-card');
+    const name = card.dataset.name;
+    const msgs = {
+      preview: `Открываем просмотр «${name}»...`,
+      album: `Переходим к альбому «${name}»...`,
+      copy: `Копия «${name}» создана`,
+      typography: `Информация о типографии для «${name}»`,
+    };
+    showToast(msgs[action] || action, action === 'copy' ? 'green' : 'green');
+  }
+
+  function ctxDelete(item) {
+    closeAllMenus();
+    cardToDelete = item.closest('.tpl-card');
+    document.getElementById('delete-name').textContent = cardToDelete.dataset.name;
+    document.getElementById('delete-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.remove('open');
+    document.body.style.overflow = '';
+    cardToDelete = null;
+  }
+
+  function handleModalClick(e) {
+    if (e.target === e.currentTarget) closeDeleteModal();
+  }
+
+  function confirmDelete() {
+    if (!cardToDelete) return;
+    const name = cardToDelete.dataset.name;
+    cardToDelete.style.transition = 'opacity 0.25s, transform 0.25s';
+    cardToDelete.style.opacity = '0';
+    cardToDelete.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      cardToDelete.remove();
+      // Update count
+      const count = document.querySelectorAll('.tpl-card').length;
+      document.querySelector('.section-count').textContent = count + ' шаблонов';
+    }, 260);
+    closeDeleteModal();
+    showToast(`«${name}» удалён`, 'red');
+  }
+
+  // ─── TOAST ───
+  function showToast(message, type = 'green') {
+    const wrap = document.getElementById('toast-wrap');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<div class="toast-icon ${type}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><span>${message}</span>`;
+    wrap.appendChild(t);
+    setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+  }
+</script>
+</body>
+</html>
